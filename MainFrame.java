@@ -10,8 +10,12 @@ import java.awt.event.KeyListener;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileWriter;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
+import java.util.Objects;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.awt.event.ActionEvent;
@@ -31,7 +35,7 @@ import javax.swing.ImageIcon;
 public class MainFrame extends JFrame implements KeyListener, ActionListener{
 
 	private static final long serialVersionUID = 1L;
-	private static final String version = "v0.2 [BETA]";
+	private static final String version = "v0.3 [BETA]";
 	private JPanel contentPane;
 	private JPanel topPanel;
 	private JPanel middlePanel;
@@ -39,37 +43,28 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 	private JPanel bottomLeftPanel;
 	private JPanel bottomRightPanel;
 	
-	private JButton ummmButton;
-	private JButton understandButton;
-	private JButton okButton;
-	private JButton noButton;
-	private JButton huhButton;
-	private JButton staresButton;
-	private JButton questionsButton;
-	private JButton clearButton;
-	private JButton keyButton;
+	private CustomButton ummmButton;
+	private CustomButton understandButton;
+	private CustomButton okButton;
+	private CustomButton noButton;
+	private CustomButton huhButton;
+	private CustomButton staresButton;
+	private CustomButton questionsButton;
+	private CustomButton clearButton;
+	private CustomButton keyButton;
 	private JButton reportButton;
 	private JButton copyButton;
 	private JButton saveButton;
 	private JButton settingsButton;
+	private List<CustomButton> buttons;
+	
+	private final Color COLOR_FOREGROUND = Color.WHITE;
+	private final Color COLOR_BACKGROUND = new Color(128, 0, 0);
 	
 	private JTextArea textArea;
 	
-	private int ummmCounter = 0;
-	private int understandCounter = 0;
-	private int okCounter = 0;
-	private int noCounter = 0;
-	private int huhCounter = 0;
-	private int staresCounter = 0;
-	private int questionsCounter = 0;
-	private int clearCounter = 0;
-	private int keyCounter = 0;
-	
 	private boolean isSaved = true;
 
-	/**
-	 * Create the frame.
-	 */
 	public MainFrame() {
 		setIconImage(Toolkit.getDefaultToolkit().getImage("img/logo.png"));
 		setBackground(Color.WHITE);
@@ -83,7 +78,6 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 		setLocationRelativeTo(null);
 		
 		addWindowListener(new WindowAdapter() {
-			
 		    @Override
 		    public void windowClosing(WindowEvent windowEvent) {
 		        if(isSaved == false) {
@@ -114,59 +108,70 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 	
 	public void init() {
 		//Buttons
-		ummmButton = new JButton("Ummm");
-		ummmButton.setForeground(Color.WHITE);
-		ummmButton.setBackground(new Color(128, 0, 0));
+		ummmButton = new CustomButton("Ummm", "ummm...");
+		ummmButton.setForeground(COLOR_FOREGROUND);
+		ummmButton.setBackground(COLOR_BACKGROUND);
 		ummmButton.addActionListener(this);
 		
-		understandButton = new JButton("Understand?");
-		understandButton.setForeground(Color.WHITE);
-		understandButton.setBackground(new Color(128, 0, 0));
+		understandButton = new CustomButton("Understand?", "understand?...");
+		understandButton.setForeground(COLOR_FOREGROUND);
+		understandButton.setBackground(COLOR_BACKGROUND);
 		understandButton.addActionListener(this);
 		
-		okButton = new JButton("Ok");
-		okButton.setForeground(Color.WHITE);
-		okButton.setBackground(new Color(128, 0, 0));
+		okButton = new CustomButton("Ok", "ok...");
+		okButton.setForeground(COLOR_FOREGROUND);
+		okButton.setBackground(COLOR_BACKGROUND);
 		okButton.addActionListener(this);
 		
-		noButton = new JButton("No?");
-		noButton.setForeground(Color.WHITE);
-		noButton.setBackground(new Color(128, 0, 0));
+		noButton = new CustomButton("No?", "no...");
+		noButton.setForeground(COLOR_FOREGROUND);
+		noButton.setBackground(COLOR_BACKGROUND);
 		noButton.addActionListener(this);
 		
-		huhButton = new JButton("Huh");
-		huhButton.setForeground(Color.WHITE);
-		huhButton.setBackground(new Color(128, 0, 0));
+		huhButton = new CustomButton("Huh", "huh...");
+		huhButton.setForeground(COLOR_FOREGROUND);
+		huhButton.setBackground(COLOR_BACKGROUND);
 		huhButton.addActionListener(this);
 		
-		staresButton = new JButton("*stares*");
-		staresButton.setForeground(Color.WHITE);
-		staresButton.setBackground(new Color(128, 0, 0));
+		staresButton = new CustomButton("*stares*", "*stares*...");
+		staresButton.setForeground(COLOR_FOREGROUND);
+		staresButton.setBackground(COLOR_BACKGROUND);
 		staresButton.addActionListener(this);
 		
-		questionsButton = new JButton("Questions?");
-		questionsButton.setForeground(Color.WHITE);
-		questionsButton.setBackground(new Color(128, 0, 0));
+		questionsButton = new CustomButton("Questions?", "Any questions?...");
+		questionsButton.setForeground(COLOR_FOREGROUND);
+		questionsButton.setBackground(COLOR_BACKGROUND);
 		questionsButton.addActionListener(this);
 		
-		clearButton = new JButton("It is clear?");
-		clearButton.setForeground(Color.WHITE);
-		clearButton.setBackground(new Color(128, 0, 0));
+		clearButton = new CustomButton("It is clear?", "Is it clear?...");
+		clearButton.setForeground(COLOR_FOREGROUND);
+		clearButton.setBackground(COLOR_BACKGROUND);
 		clearButton.addActionListener(this);
 		
-		keyButton = new JButton("Key Point");
-		keyButton.setForeground(Color.WHITE);
-		keyButton.setBackground(new Color(128, 0, 0));
+		keyButton = new CustomButton("Key Point", "Did you understand this KEY POINT...");
+		keyButton.setForeground(COLOR_FOREGROUND);
+		keyButton.setBackground(COLOR_BACKGROUND);
 		keyButton.addActionListener(this);
 		
+		buttons = new ArrayList<>();
+		buttons.add(ummmButton);
+		buttons.add(understandButton);
+		buttons.add(okButton);
+		buttons.add(noButton);
+		buttons.add(huhButton);
+		buttons.add(staresButton);
+		buttons.add(questionsButton);
+		buttons.add(clearButton);
+		buttons.add(keyButton);
+		
 		copyButton = new JButton("Copy Text");
-		copyButton.setForeground(Color.WHITE);
-		copyButton.setBackground(new Color(128, 0, 0));
+		copyButton.setForeground(COLOR_FOREGROUND);
+		copyButton.setBackground(COLOR_BACKGROUND);
 		copyButton.addActionListener(this);
 		
 		reportButton = new JButton("Get Report");
-		reportButton.setForeground(Color.WHITE);
-		reportButton.setBackground(new Color(128, 0, 0));
+		reportButton.setForeground(COLOR_FOREGROUND);
+		reportButton.setBackground(COLOR_BACKGROUND);
 		reportButton.addActionListener(this);
 		
 		settingsButton = new JButton("");
@@ -179,8 +184,8 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 		settingsButton.setBorderPainted(false);
 		
 		saveButton = new JButton("Save");
-		saveButton.setBackground(new Color(128, 0, 0));
-		saveButton.setForeground(Color.WHITE);
+		saveButton.setForeground(COLOR_FOREGROUND);
+		saveButton.setBackground(COLOR_BACKGROUND);
 		saveButton.addActionListener(this);
 		
 		//Text Area
@@ -241,25 +246,7 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 	
 	@Override
 	public void actionPerformed (ActionEvent e) {
-		if(e.getSource() == ummmButton) {
-			ummmAction();
-		} else if (e.getSource() == understandButton) {
-			understandAction();
-		} else if (e.getSource() == okButton) {
-			okAction();
-		} else if (e.getSource() == noButton) {
-			noAction();
-		} else if (e.getSource() == huhButton) {
-			huhAction();
-		} else if (e.getSource() == staresButton) {
-			staresAction();
-		} else if (e.getSource() == questionsButton) {
-			questionsAction();
-		} else if (e.getSource() == clearButton) {
-			clearAction();
-		} else if (e.getSource() == keyButton) {
-			keyAction();
-		} else if (e.getSource() == reportButton) {
+		if (e.getSource() == reportButton) {
 			reportAction();
 		} else if (e.getSource() == copyButton) {
 			copyAction();
@@ -267,101 +254,69 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 			saveAction();
 		} else if (e.getSource() == settingsButton) {
 			settingsAction();
+		} else {
+			if (e.getSource() instanceof CustomButton) {
+				CustomButton button = (CustomButton) e.getSource();
+				textArea.setText(textArea.getText() + button.getMessage());
+				button.inc();
+				isSaved = false;
+			}
 		}
+		
 		this.requestFocus();
 	}
 	
 	@Override
 	public void keyPressed (KeyEvent e) {
+		CustomButton selectedButton;
+		
 		if (e.getKeyCode() == KeyEvent.VK_NUMPAD1) {
-			questionsAction();
+			selectedButton = questionsButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD2) {
-			clearAction();
+			selectedButton = clearButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD3) {
-			keyAction();
+			selectedButton = keyButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD4) {
-			noAction();
+			selectedButton = noButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD5) {
-			huhAction();
+			selectedButton = huhButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD6) {
-			staresAction();
+			selectedButton = staresButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD7) {
-			ummmAction();
+			selectedButton = ummmButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD8) {
-			understandAction();
+			selectedButton = understandButton;
 		} else if (e.getKeyCode() == KeyEvent.VK_NUMPAD9) {
-			okAction();
+			selectedButton = okButton;
+		} else {
+			return;
 		}
+		
+		textArea.setText(textArea.getText() + selectedButton.getMessage());
+		selectedButton.inc();
+		isSaved = false;
 	}
 	
 	@Override
-	public void keyTyped (KeyEvent e) {
-		
-	}
+	public void keyTyped (KeyEvent e) {	}
 	
 	@Override
-	public void keyReleased(KeyEvent e) {
-		
-	}
-	
-	public void ummmAction() {
-		textArea.setText(textArea.getText() + "ummm...");
-		ummmCounter++;
-		isSaved = false;
-	}
-	
-	public void understandAction() {
-		textArea.setText(textArea.getText() + "understand?...");
-		understandCounter++;
-		isSaved = false;
-	}
-	
-	public void okAction() {
-		textArea.setText(textArea.getText() + "ok...");
-		okCounter++;
-		isSaved = false;
-	}
-	
-	public void noAction() {
-		textArea.setText(textArea.getText() + "no...");
-		noCounter++;
-		isSaved = false;
-	}
-	
-	public void huhAction() {
-		textArea.setText(textArea.getText() + "huh...");
-		huhCounter++;
-		isSaved = false;
-	}
-	
-	public void staresAction() {
-		textArea.setText(textArea.getText() + "*stares*...");
-		staresCounter++;
-		isSaved = false;
-	}
-	
-	public void questionsAction() {
-		textArea.setText(textArea.getText() + "Any questions?...");
-		questionsCounter++;
-		isSaved = false;
-	}
-	
-	public void clearAction() {
-		textArea.setText(textArea.getText() + "Is it clear?...");
-		clearCounter++;
-		isSaved = false;
-	}
-	
-	public void keyAction() {
-		textArea.setText(textArea.getText() + "Did you understand this KEY POINT...");
-		keyCounter++;
-		isSaved = false;
-	}
+	public void keyReleased(KeyEvent e) { }
 	
 	public void reportAction() {
-		JOptionPane.showMessageDialog(null, "ummm(s): " + ummmCounter + "\nUnderstand?(s): " + understandCounter + "\nOk(s): " + okCounter
-				+ "\nNo?(s): " + noCounter + "\nHuh(s): " + huhCounter + "\n*stares*: " + staresCounter + "\nQuestions?: " + questionsCounter
-				+ "\nIt is clear?(s): " + clearCounter + "\nKey point(s): " + keyCounter, "Staines Counter Report", JOptionPane.PLAIN_MESSAGE);
+		StringBuilder sb = new StringBuilder();
+		System.out.println(buttons.size());
+		
+		for (CustomButton b : buttons) {
+			String buttonName = b.getText();
+			String temp = buttonName.substring(0, 1);
+			temp = temp.toUpperCase();
+			
+			String finalString = temp + buttonName.substring(1, buttonName.length()) + "(s): " + b.getCounter() + "\n";
+			sb.append(finalString);
+		}
+		
+		JOptionPane.showMessageDialog(null, sb, "Staines Counter Report", JOptionPane.PLAIN_MESSAGE);
 	}
 	
 	public void copyAction() {
@@ -373,32 +328,31 @@ public class MainFrame extends JFrame implements KeyListener, ActionListener{
 			DateFormat dateFormat = new SimpleDateFormat("dd.MM.yyyy");
             Date date = new Date();
             
+            File file = new File("logs");
+            
+            if (!file.exists()) {
+            	file.mkdir();
+            }
+            
             BufferedWriter bw = new BufferedWriter (new FileWriter ("logs/" + dateFormat.format(date) + ".txt"));
             
             bw.write(dateFormat.format(date));
             bw.newLine();
-            bw.write(String.valueOf("Ummm(s): " + ummmCounter));
-            bw.newLine();
-            bw.write(String.valueOf("Understand?(s): " + understandCounter));
-            bw.newLine();
-            bw.write(String.valueOf("Ok(s): " + okCounter));
-            bw.newLine();
-            bw.write(String.valueOf("No?(s): " + noCounter));
-            bw.newLine();
-            bw.write(String.valueOf("Huh(s): " + huhCounter));
-            bw.newLine();
-            bw.write(String.valueOf("*stares*:" + staresCounter));
-            bw.newLine();
-            bw.write(String.valueOf("Questions?:" + questionsCounter));
-            bw.newLine();
-            bw.write(String.valueOf("It is clear?(s): " + clearCounter));
-            bw.newLine();
-            bw.write(String.valueOf("Key point(s): " + keyCounter));
-            bw.newLine();
+            
+            for (CustomButton b : buttons) {
+            	String buttonName = b.getText();
+    			String temp = buttonName.substring(0, 1);
+    			temp = temp.toUpperCase();
+    			
+    			String finalString = temp + buttonName.substring(1, buttonName.length()) + "(s): " + b.getCounter() + "\n";
+            	bw.write(finalString);
+            }
+          
             bw.close();
         } catch (Exception e){
             JOptionPane.showMessageDialog (null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
         }
+		
 		isSaved = true;
 	}
 	
