@@ -1,0 +1,27 @@
+{
+    "buttonBackground": {
+        "r": 128,
+        "g": 0,
+        "b": 0
+    },
+    "buttonForeground": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+    },
+    "textAreaBackground": {
+        "r": 245,
+        "g": 245,
+        "b": 245
+    },
+    "textAreaForeground": {
+        "r": 128,
+        "g": 0,
+        "b": 0
+    },
+    "background": {
+        "r": 255,
+        "g": 255,
+        "b": 255
+    }
+}
