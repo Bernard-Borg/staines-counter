@@ -14,21 +14,25 @@ plugins {
     id 'application'
 }
 
+version = 0.8
+sourceCompatibility = JavaVersion.VERSION_1_8
+targetCompatibility = JavaVersion.VERSION_1_8
+
 repositories {
     // Use jcenter for resolving dependencies.
-    // You can declare any Maven/Ivy/file repository here.
     jcenter()
 }
 
 dependencies {
     //json-java for json file parsing
     compile group: 'org.json', name: 'json', version: '20200518'
-
-    // Use JUnit for testing
-    testImplementation 'junit:junit:4.13'
 }
 
-application {
-    // Define the main class for the application.
-    mainClassName = 'StainesCounter.Main'
+task fatJar(type: Jar) {
+    manifest {
+        attributes 'Main-Class': 'StainesCounter.Main'
+    }
+    baseName = project.name + '-all'
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
 }

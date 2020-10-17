@@ -9,7 +9,7 @@ import java.awt.event.WindowEvent;
 import java.util.List;
 
 public class Main {
-    private static final String version = "0.7 [BETA]";
+    private static final String version = "0.8 [BETA]";
     private static final String iconImagePath = "src/main/resources/logo.png";
 
     public static void main(String[] args) {
@@ -21,16 +21,13 @@ public class Main {
             tempTheme = cl.loadTheme();
             phrases = cl.loadButtons();
         } catch (JSONException e) {
-            JOptionPane.showMessageDialog(null, "Config file(s) corrupt",
-                    "Config Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, "Phrases file invalid/corrupt",
+                    "Error - Invalid phrases configuration file", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
         } catch (LoadingException e) {
-            JOptionPane.showMessageDialog(null, "Config file(s) not found",
+            JOptionPane.showMessageDialog(null, e.getMessage(),
                     "Error", JOptionPane.ERROR_MESSAGE);
             System.exit(1);
-        } catch (InvalidColorException e) {
-            JOptionPane.showMessageDialog(null, "Color values in config invalid",
-                    "Error", JOptionPane.ERROR_MESSAGE);
         }
 
         MainPanel mPanel = new MainPanel(tempTheme, phrases);

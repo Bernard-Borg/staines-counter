@@ -1,5 +1,6 @@
 package StainesCounter;
 
+import javax.security.auth.login.Configuration;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.MatteBorder;
@@ -7,6 +8,7 @@ import java.awt.*;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
@@ -97,9 +99,9 @@ public class SettingsPanel extends JPanel {
         presetLabel.setPreferredSize(new Dimension(340, 60));
 
         Map<String, String> map = new LinkedHashMap<String, String>() {{
-            put("Default Light Mode", "src/main/presets/preset_1.json");
-            put("Dark Mode", "src/main/presets/preset_2.json");
-            put("Nathan Mode", "src/main/presets/preset_3.json");
+            put("Default Light Mode", "src/main/resources/presets/preset_1.json");
+            put("Dark Mode", "src/main/resources/presets/preset_2.json");
+            put("Nathan Mode", "src/main/resources/presets/preset_3.json");
         }};
 
         Set<String> set = new LinkedHashSet<>(map.keySet());
@@ -111,7 +113,6 @@ public class SettingsPanel extends JPanel {
         comboBox.setForeground(BUTTON_COLOR_FOREGROUND);
         comboBox.setPreferredSize(new Dimension(340, 60));
         comboBox.setFont(SETTINGS_FONT);
-
 
         //Workaround for JComboBox.setBorderPainted(false)
         for (int i = 0; i < comboBox.getComponentCount(); i++) {
@@ -159,16 +160,35 @@ public class SettingsPanel extends JPanel {
     }
 
     public void chooseFile() {
-        final JFileChooser fileChooser = new JFileChooser();
-        fileChooser.setFileFilter(new JSONFilter());
-        int returnVal = fileChooser.showOpenDialog(new JOptionPane());
+        LookAndFeel previousLF = UIManager.getLookAndFeel();
+        final JFileChooser fileChooser;
 
-        if (returnVal == JFileChooser.APPROVE_OPTION) {
-            File file = fileChooser.getSelectedFile();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+            fileChooser = new JFileChooser(new File(System.getProperty("user.home") + "/Desktop"));
+            fileChooser.setFileFilter(new JSONFilter());
 
-            importLabel.setText(replaceTextAfterColonSpace(importLabel.getText(), file.getName()));
-            presetLabel.setText(initialPresetLabelText);
-            chosenFilePath = file.getAbsolutePath();
+            int returnVal = fileChooser.showOpenDialog(new JOptionPane());
+
+            if (returnVal == JFileChooser.APPROVE_OPTION) {
+                File file = fileChooser.getSelectedFile();
+
+                ConfigurationLoader cl = new ConfigurationLoader();
+
+                if (cl.isValidTheme(file.getAbsolutePath())) {
+                    importLabel.setText(replaceTextAfterColonSpace(importLabel.getText(), file.getName()));
+                    presetLabel.setText(initialPresetLabelText);
+                    chosenFilePath = file.getAbsolutePath();
+                } else {
+                    JOptionPane.showMessageDialog(null,
+                            "Selected file invalid, please select a different file", "Error - Selected file invalid",
+                            JOptionPane.ERROR_MESSAGE);
+                }
+            }
+
+            UIManager.setLookAndFeel(previousLF);
+        } catch (Exception e) {
+            System.err.println("This error should never occur");
         }
     }
 
@@ -187,7 +207,7 @@ public class SettingsPanel extends JPanel {
         System.out.println(filePath);
 
         File file = new File(filePath);
-        File destinationFile = new File("src/main/theme.json");
+        File destinationFile = new File("src/main/resources/configuration/theme.json");
 
         try {
             Files.copy(file.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
