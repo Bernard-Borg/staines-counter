@@ -2,15 +2,17 @@ package StainesCounter;
 
 import org.json.JSONException;
 
+import javax.imageio.ImageIO;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.awt.image.BufferedImage;
+import java.io.IOException;
 import java.util.List;
 
 public class Main {
-    private static final String version = "0.8 [BETA]";
-    private static final String iconImagePath = "src/main/resources/logo.png";
+    private static final String version = "0.9 [BETA]";
 
     public static void main(String[] args) {
         ConfigurationLoader cl = new ConfigurationLoader();
@@ -34,7 +36,14 @@ public class Main {
         mPanel.setBackground(tempTheme.getBackground());
 
         JFrame frame = new JFrame("Staines Counter v" + version);
-        frame.setIconImage(Toolkit.getDefaultToolkit().getImage(iconImagePath));
+
+        try {
+            BufferedImage image = ImageIO.read(Main.class.getClassLoader().getResourceAsStream("logo.png"));
+            frame.setIconImage(image);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(null, "Read failed");
+        }
+
         frame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
         frame.setSize(new Dimension(1000, 900));

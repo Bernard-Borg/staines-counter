@@ -8,10 +8,7 @@ import java.awt.*;
 import java.awt.datatransfer.StringSelection;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
+import java.io.*;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
@@ -40,8 +37,8 @@ public class MainPanel extends JPanel {
 
     public MainPanel(Theme theme, List<Phrase> list) {
         try {
-            FONT_AWESOME = Font.createFont(Font.TRUETYPE_FONT,
-                    new File("src/main/resources/FontAwesome.otf"));
+            InputStream fontInputStream = MainPanel.class.getClassLoader().getResourceAsStream("FontAwesome.otf");
+            FONT_AWESOME = Font.createFont(Font.TRUETYPE_FONT, fontInputStream);
 
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(FONT_AWESOME);
@@ -50,7 +47,12 @@ public class MainPanel extends JPanel {
         } catch (IOException e) {
             JOptionPane.showMessageDialog(null,
                     "Loading font failed, application might not look as intended",
-                    "Error - Font loading", JOptionPane.ERROR_MESSAGE);
+                    "Error - Font loading", JOptionPane.WARNING_MESSAGE);
+        }
+
+        //Just in case FONT_AWESOME fails to be loaded, program won't crash
+        if (FONT_AWESOME == null) {
+            FONT_AWESOME = BUTTON_FONT;
         }
 
         this.BUTTON_COLOR_BACKGROUND = theme.getButtonBackground();
@@ -182,14 +184,16 @@ public class MainPanel extends JPanel {
         try {
             DateTimeFormatter dateFormat = DateTimeFormatter.ofPattern("dd.MM.yyyy HH-mm-ss");
 
-            File file = new File("reports");
+            String filePath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+
+            File file = new File(filePath + "/Staines Counter/reports");
 
             if (!file.exists()) {
-                file.mkdir();
+                file.mkdirs();
             }
 
             BufferedWriter bw = new BufferedWriter(
-                new FileWriter("reports/" + dateFormat.format(dateTime) + ".txt")
+                new FileWriter(filePath + "/Staines Counter/reports/" + dateFormat.format(dateTime) + ".txt")
             );
 
             bw.write(dateFormat.format(dateTime));
@@ -205,9 +209,13 @@ public class MainPanel extends JPanel {
             }
 
             saved = true;
+            JOptionPane.showMessageDialog(null,
+                    "Report has been saved in your Documents folder");
+
             bw.close();
         } catch (Exception e) {
-            JOptionPane.showMessageDialog(null, e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+            JOptionPane.showMessageDialog(null, e.getMessage(),
+                    "Error - File not saved", JOptionPane.ERROR_MESSAGE);
         }
     }
 
@@ -227,7 +235,15 @@ public class MainPanel extends JPanel {
             @Override
             public void windowClosing(WindowEvent e) {
                 if (panel.getChosenFilePath() != null) {
-                    if (panel.setTheme(panel.getChosenFilePath())) {
+                    boolean themeChangedSuccessfully = false;
+
+                    if (panel.getOption() == 1) {
+                        themeChangedSuccessfully = panel.setThemeFromFile(panel.getChosenFilePath());
+                    } else {
+                        themeChangedSuccessfully = panel.setThemeFromJar(panel.getChosenFilePath());
+                    }
+
+                    if (themeChangedSuccessfully) {
                         JOptionPane.showMessageDialog(null,
                                 "Theme changed successfully, restart for changes to take place",
                                 "Theme changed", JOptionPane.INFORMATION_MESSAGE);

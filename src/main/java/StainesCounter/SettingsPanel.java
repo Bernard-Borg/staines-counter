@@ -7,12 +7,15 @@ import javax.swing.border.MatteBorder;
 import java.awt.*;
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.*;
 
 public class SettingsPanel extends JPanel {
+    private int themeFileOption; //Option 1 is load from chosen file, Option 2 is load from preset
+
     private String chosenFilePath;
     private JLabel importLabel;
     private JLabel presetLabel;
@@ -99,9 +102,9 @@ public class SettingsPanel extends JPanel {
         presetLabel.setPreferredSize(new Dimension(340, 60));
 
         Map<String, String> map = new LinkedHashMap<String, String>() {{
-            put("Default Light Mode", "src/main/resources/presets/preset_1.json");
-            put("Dark Mode", "src/main/resources/presets/preset_2.json");
-            put("Nathan Mode", "src/main/resources/presets/preset_3.json");
+            put("Default Light Mode", "presets/preset_1.json");
+            put("Dark Mode", "presets/preset_2.json");
+            put("Nathan Mode", "presets/preset_3.json");
         }};
 
         Set<String> set = new LinkedHashSet<>(map.keySet());
@@ -125,11 +128,10 @@ public class SettingsPanel extends JPanel {
             String selected = (String) comboBox.getSelectedItem();
             String filePath = map.get(selected);
 
-            File file = new File(filePath);
-
+            themeFileOption = 2;
             presetLabel.setText(replaceTextAfterColonSpace(presetLabel.getText(), selected));
             importLabel.setText(initialImportLabelText);
-            chosenFilePath = file.getAbsolutePath();
+            chosenFilePath = filePath;
         });
 
         rightBottomPanel.setLayout(new GridBagLayout());
@@ -160,6 +162,7 @@ public class SettingsPanel extends JPanel {
     }
 
     public void chooseFile() {
+        themeFileOption = 1;
         LookAndFeel previousLF = UIManager.getLookAndFeel();
         final JFileChooser fileChooser;
 
@@ -203,11 +206,25 @@ public class SettingsPanel extends JPanel {
         return tempString.concat(newString);
     }
 
-    public boolean setTheme(String filePath) {
-        System.out.println(filePath);
+    public boolean setThemeFromJar(String filePath) {
+        final String myDocumentsPath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+        InputStream is = SettingsPanel.class.getClassLoader().getResourceAsStream(filePath);
+
+        File file = new File(myDocumentsPath + "/Staines Counter/theme.json");
+
+        try {
+            Files.copy(is, file.toPath(), StandardCopyOption.REPLACE_EXISTING);
+            return true;
+        } catch (IOException e) {
+            return false;
+        }
+    }
+
+    public boolean setThemeFromFile(String filePath) {
+        final String myDocumentsPath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
 
         File file = new File(filePath);
-        File destinationFile = new File("src/main/resources/configuration/theme.json");
+        File destinationFile = new File(myDocumentsPath + "/Staines Counter/theme.json");
 
         try {
             Files.copy(file.toPath(), destinationFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
@@ -215,5 +232,9 @@ public class SettingsPanel extends JPanel {
         } catch (IOException e) {
             return false;
         }
+    }
+
+    public int getOption() {
+        return themeFileOption;
     }
 }

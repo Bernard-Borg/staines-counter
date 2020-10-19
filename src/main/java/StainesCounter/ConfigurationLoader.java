@@ -10,14 +10,48 @@ import java.awt.*;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.List;
 
 public class ConfigurationLoader {
     //Loads application theme from theme.json using nested objects
     public Theme loadTheme() throws LoadingException {
-        final String defaultThemePath = "src/main/resources/presets/preset_1.json";
-        final String themePath = "src/main/resources/configuration/theme.json";
+        final String defaultThemePath = "presets/preset_1.json";
+        final String myDocumentsPath = new JFileChooser().getFileSystemView().getDefaultDirectory().toString();
+        final String stainesDirectoryPath = myDocumentsPath + "/Staines Counter";
+        final String themePath = stainesDirectoryPath + "/theme.json";
+
+        final File stainesFolder = new File(stainesDirectoryPath);
+        final File themeFile = new File(themePath);
+
+        if (!stainesFolder.exists()) {
+            stainesFolder.mkdir();
+        }
+
+        if (!themeFile.exists()) {
+             try {
+                 themeFile.createNewFile();
+
+                 InputStream is = ConfigurationLoader.class.getClassLoader().getResourceAsStream(defaultThemePath);
+
+                 if (is == null) {
+                     throw new LoadingException("Default theme file missing, unable to continue, " +
+                             "please re-install the program.");
+                 }
+
+                 try {
+                     Files.copy(is, themeFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
+                 } catch (IOException ex) {
+                     throw new LoadingException("Creating temporary theme file while copying failed");
+                 }
+             } catch (IOException e) {
+                 throw new LoadingException("Program was unable to create theme file, please restart the program");
+             }
+        }
 
         Theme theme;
 
@@ -32,11 +66,11 @@ public class ConfigurationLoader {
         }
 
         try {
-            theme = getThemeFromFile(defaultThemePath);
+            theme = getThemeFromJar(defaultThemePath);
 
             if (theme != null) {
                 JOptionPane.showMessageDialog(null,
-                        "Your theme file was not found or was invalid, using the default instead",
+                        "Your theme file was invalid/corrupt, using the default instead",
                         "Error - Personal Theme File Missing", JOptionPane.WARNING_MESSAGE);
 
                 return theme;
@@ -47,6 +81,8 @@ public class ConfigurationLoader {
             throw new LoadingException("Personal theme file and default theme file have invalid colour values");
         } catch (JSONException e) {
             throw new LoadingException("Personal theme file and default theme file are invalid/corrupt");
+        } catch (IOException e) {
+            throw new LoadingException("Creating temporary theme file failed");
         }
     }
 
@@ -67,15 +103,28 @@ public class ConfigurationLoader {
     }
 
     public Theme getThemeFromFile(String filePath) throws NumberFormatException, JSONException {
-        Theme loadedTheme;
-
         File themeFile = new File(filePath);
 
         if (!themeFile.exists()) {
             return null;
         }
 
-        try (FileInputStream fis = new FileInputStream(themeFile)) {
+        return decodeFile(themeFile);
+    }
+
+    public Theme getThemeFromJar(String filePath) throws NumberFormatException, JSONException, IOException {
+        InputStream is = ConfigurationLoader.class.getClassLoader().getResourceAsStream(filePath);
+
+        Path temp = Files.createTempFile("resource-theme", ".tmp");
+        Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
+
+        return decodeFile(temp.toFile());
+    }
+
+    public Theme decodeFile(File file) {
+        Theme loadedTheme;
+
+        try (FileInputStream fis = new FileInputStream(file)) {
             JSONTokener tokener = new JSONTokener(fis);
             JSONObject object = new JSONObject(tokener);
 
@@ -95,32 +144,40 @@ public class ConfigurationLoader {
 
     //Loads application phrases from phrases.json using an array of objects
     public List<Phrase> loadButtons() throws JSONException, LoadingException {
-        final String phrasesPath = "src/main/resources/configuration/phrases.json";
-        final File phrasesFile = new File(phrasesPath);
+        final String phrasesPath = "configuration/phrases.json";
 
         List<Phrase> loadedPhrases = new ArrayList<>();
 
-        if (!phrasesFile.exists()) {
+        InputStream is = ConfigurationLoader.class.getClassLoader().getResourceAsStream(phrasesPath);
+
+        if (is == null) {
             throw new LoadingException("Phrases.json does not exist");
         }
 
-        try (FileInputStream fis = new FileInputStream(phrasesFile)) {
-            JSONTokener tokener = new JSONTokener(fis);
-            JSONObject object = new JSONObject(tokener);
+        try {
+            Path temp = Files.createTempFile("resource-phrases", ".tmp");
+            Files.copy(is, temp, StandardCopyOption.REPLACE_EXISTING);
 
-            JSONArray array = object.getJSONArray("array");
-            int arrayLength = array.length();
+            try (FileInputStream fis = new FileInputStream(temp.toFile())) {
+                JSONTokener tokener = new JSONTokener(fis);
+                JSONObject object = new JSONObject(tokener);
 
-            for (int i = 0; i < arrayLength; i++) {
-                JSONObject temp = array.getJSONObject(i);
-                loadedPhrases.add(new Phrase(temp.getString("text"),
-                        temp.getString("phrase")));
+                JSONArray array = object.getJSONArray("array");
+                int arrayLength = array.length();
+
+                for (int i = 0; i < arrayLength; i++) {
+                    JSONObject tempJSON = array.getJSONObject(i);
+                    loadedPhrases.add(new Phrase(tempJSON.getString("text"),
+                            tempJSON.getString("phrase")));
+                }
+
+                return loadedPhrases;
+            } catch (IOException e) {
+                System.err.println("IO failed");
+                return null;
             }
-
-            return loadedPhrases;
         } catch (IOException e) {
-            System.err.println("IO failed");
-            return null;
+            throw new LoadingException("Creating temporary phrases file while copying failed");
         }
     }
 }
