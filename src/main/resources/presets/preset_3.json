@@ -1,6 +1,6 @@
 {
     "buttonBackground": "#45E521",
-    "buttonForeground": "#FFFFFF",
+    "buttonForeground": "#000000",
     "textAreaBackground": "#000000",
     "textAreaForeground": "#45E521",
     "background": "#000000"
